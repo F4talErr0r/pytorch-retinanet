@@ -19,7 +19,7 @@ def main(args=None):
 
     parser = parser.parse_args(args)
 
-    dataset_val = CocoDataset(parser.coco_path, set_name='val2017',
+    dataset_val = CocoDataset(parser.coco_path, set_name='validation',
                               transform=transforms.Compose([Normalizer(), Resizer()]))
 
     # Create the model
@@ -32,7 +32,7 @@ def main(args=None):
             retinanet = retinanet.cuda()
 
     if torch.cuda.is_available():
-        retinanet.load_state_dict(torch.load(parser.model_path))
+        retinanet.load_state_dict(torch.load(parser.model_path).module.state_dict())
         retinanet = torch.nn.DataParallel(retinanet).cuda()
     else:
         retinanet.load_state_dict(torch.load(parser.model_path))
