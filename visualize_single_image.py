@@ -32,7 +32,7 @@ def draw_caption(image, box, caption):
     cv2.putText(image, caption, (b[0], b[1] - 10), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 1)
 
 
-def detect_image(image_path, model_path, class_list):
+def detect_image(image_path, dest_dir, model_path, class_list):
 
     with open(class_list, 'r') as f:
         classes = load_classes(csv.reader(f, delimiter=','))
@@ -115,8 +115,7 @@ def detect_image(image_path, model_path, class_list):
                 draw_caption(image_orig, (x1, y1, x2, y2), caption)
                 cv2.rectangle(image_orig, (x1, y1), (x2, y2), color=(0, 0, 255), thickness=2)
 
-            cv2.imshow('detections', image_orig)
-            cv2.waitKey(0)
+            cv2.imwrite(os.path.join(dest_dir, img_name), image_orig)
 
 
 if __name__ == '__main__':
@@ -124,9 +123,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Simple script for visualizing result of training.')
 
     parser.add_argument('--image_dir', help='Path to directory containing images')
+    parser.add_argument('--dest_dir', help='Path to save output files to')
     parser.add_argument('--model_path', help='Path to model')
     parser.add_argument('--class_list', help='Path to CSV file listing class names (see README)')
 
     parser = parser.parse_args()
 
-    detect_image(parser.image_dir, parser.model_path, parser.class_list)
+    detect_image(parser.image_dir, parser.dest_dir, parser.model_path, parser.class_list)
