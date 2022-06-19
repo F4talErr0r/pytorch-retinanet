@@ -52,6 +52,7 @@ def detect_image(image_path, dest_dir, model_path, class_list):
     for img_name in os.listdir(image_path):
 
         image = cv2.imread(os.path.join(image_path, img_name))
+        image = cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
         if image is None:
             continue
         image_orig = image.copy()
@@ -115,7 +116,7 @@ def detect_image(image_path, dest_dir, model_path, class_list):
                 draw_caption(image_orig, (x1, y1, x2, y2), caption)
                 cv2.rectangle(image_orig, (x1, y1), (x2, y2), color=(0, 0, 255), thickness=2)
 
-            cv2.imwrite(os.path.join(dest_dir, img_name), image_orig)
+            cv2.imwrite(os.path.join(dest_dir, img_name), cv2.cvtColor(image_orig, cv2.COLOR_RGB2BGR))
 
 
 if __name__ == '__main__':
