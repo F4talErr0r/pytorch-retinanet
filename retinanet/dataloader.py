@@ -370,6 +370,36 @@ class Resizer(object):
 
         return {'img': torch.from_numpy(new_image), 'annot': torch.from_numpy(annots), 'scale': scale}
 
+class RandomCropper(object):
+    """Convert ndarrays in sample to Tensors."""
+
+    def __call__(self, sample):
+        image, annots = sample['img'], sample['annot']
+
+        output_size = (608, 973)
+
+        h, w, cns = image.shape
+        th, tw = output_size
+
+        if h + 1 < th or w + 1 < tw:
+            raise ValueError(f"Required crop size {(th, tw)} is larger then input image size {(h, w)}")
+
+        if w != tw or h != th:
+            i = torch.randint(0, h - th + 1, size=(1,)).item()
+            j = torch.randint(0, w - tw + 1, size=(1,)).item()
+            annots_filter = [(a[0] >= j and a[0] + a[2] and a[1] >= i and a[1] + a[3] >= j) for a in annots]
+            annots = annots[annots_filter]
+            image = image[i:i+th, j:j+tw]
+
+        rows, cols, cns = image.shape
+
+        pad_w = 32 - rows % 32
+        pad_h = 32 - cols % 32
+
+        new_image = np.zeros((rows + pad_w, cols + pad_h, cns)).astype(np.float32)
+        new_image[:rows, :cols, :] = image.astype(np.float32)
+
+        return {'img': torch.from_numpy(new_image), 'annot': torch.from_numpy(annots), 'scale': 1.0}
 
 class Augmenter(object):
     """Convert ndarrays in sample to Tensors."""
