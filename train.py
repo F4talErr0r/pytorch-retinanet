@@ -1,3 +1,4 @@
+import os
 import argparse
 import collections
 
@@ -31,6 +32,7 @@ def main(args=None):
 
     parser.add_argument('--depth', help='Resnet depth, must be one of 18, 34, 50, 101, 152', type=int, default=50)
     parser.add_argument('--epochs', help='Number of epochs', type=int, default=100)
+    parser.add_argument('--continue_from', help='Model to continue training', default=None)
 
     parser = parser.parse_args(args)
 
@@ -73,8 +75,17 @@ def main(args=None):
         sampler_val = AspectRatioBasedSampler(dataset_val, batch_size=1, drop_last=False)
         dataloader_val = DataLoader(dataset_val, num_workers=3, collate_fn=collater, batch_sampler=sampler_val)
 
+    starting_epoch = 0
+        
     # Create the model
-    if parser.depth == 18:
+    if parser.continue_from is not None:
+        path, file = os.path.split(parser.continue_from)
+        file = os.path.splitext(file)[0]
+        starting_epoch = int(file.split('_')[2]) + 1
+
+        retinanet = torch.load(parser.continue_from)
+
+    elif parser.depth == 18:
         retinanet = model.resnet18(num_classes=dataset_train.num_classes(), pretrained=True)
     elif parser.depth == 34:
         retinanet = model.resnet34(num_classes=dataset_train.num_classes(), pretrained=True)
@@ -111,7 +122,7 @@ def main(args=None):
 
     print('Num training images: {}'.format(len(dataset_train)))
 
-    for epoch_num in range(parser.epochs):
+    for epoch_num in range(starting_epoch, starting_epoch + parser.epochs):
 
         retinanet.train()
         retinanet.module.freeze_bn()
